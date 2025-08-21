@@ -6,28 +6,23 @@ import {
   Patch,
   ValidationPipe,
 } from '@nestjs/common';
-import { PointHistory, TransactionType, UserPoint } from './point.model';
-import { UserPointTable } from 'src/database/userpoint.table';
-import { PointHistoryTable } from 'src/database/pointhistory.table';
+import { PointHistory, UserPoint } from './point.model';
 import { PointBody as PointDto } from './point.dto';
+import { PointService } from './point.service';
 
 @Controller('/point')
 export class PointController {
   constructor(
-    private readonly userDb: UserPointTable,
-    private readonly historyDb: PointHistoryTable,
+    private readonly pointService: PointService
   ) {}
-
   /**
    * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
    */
   @Get(':id')
   async point(@Param('id') id): Promise<UserPoint> {
     const userId = Number.parseInt(id);
-    const user = await this.userDb.selectById(userId);
-    const userPoint = user.point;
-
-    return { id: userId, point: userPoint, updateMillis: Date.now() };
+    const point = await this.pointService.getPoint(userId);
+    return point;
   }
 
   /**
@@ -36,9 +31,8 @@ export class PointController {
   @Get(':id/histories')
   async history(@Param('id') id): Promise<PointHistory[]> {
     const userId = Number.parseInt(id);
-    const userHistory = await this.historyDb.selectAllByUserId(userId);
-
-    return userHistory;
+    const history = await this.pointService.getHistory(userId);
+    return history;
   }
 
   /**
@@ -51,10 +45,8 @@ export class PointController {
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
-    const user = await this.userDb.selectById(userId);
-    const userPoint = user.point;
-    await this.userDb.insertOrUpdate(userId, userPoint + amount);
-    return { id: userId, point: amount, updateMillis: Date.now() };
+    const point = await this.pointService.charge(userId, amount);
+    return point;
   }
 
   /**
@@ -67,9 +59,7 @@ export class PointController {
   ): Promise<UserPoint> {
     const userId = Number.parseInt(id);
     const amount = pointDto.amount;
-    const user = await this.userDb.selectById(userId);
-    const userPoint = user.point;
-    await this.userDb.insertOrUpdate(userId, userPoint - amount);
-    return { id: userId, point: amount, updateMillis: Date.now() };
+    const point = await this.pointService.use(userId, amount);
+    return point;
   }
 }
