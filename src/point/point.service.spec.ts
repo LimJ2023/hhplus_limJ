@@ -17,6 +17,7 @@ describe('PointService', () => {
     expect(service).toBeDefined();
   });
 
+  // GET /point/{id} : 포인트를 조회한다. 를 테스트합니다.
   describe('getPoint', () => {
     it('should return user point', async () => {
       const point = await service.getPoint(userId);
@@ -24,6 +25,7 @@ describe('PointService', () => {
     });
   });
 
+  // GET /point/{id}/histories : 포인트 내역을 조회한다. 를 테스트합니다.
   describe('getHistory', () => {
     it('should return user point history', async () => {
       const history = await service.getHistory(userId);
@@ -31,6 +33,7 @@ describe('PointService', () => {
     });
   });
 
+  // PATCH  /point/{id}/charge : 포인트를 충전한다. 를 테스트합니다.
   describe('charge', () => {
     it('should charge user point', async () => {
       const amount = 100;
@@ -39,11 +42,21 @@ describe('PointService', () => {
     });
   });
 
+  // PATCH /point/{id}/use : 포인트를 사용한다. 를 테스트합니다.
   describe('use', () => {
     it('should use user point', async () => {
       const amount = 100;
       const point = await service.use(userId, amount);
       expect(point).toBeDefined();
+    });
+  });
+
+  // 잔고가 부족할 경우, 포인트 사용은 실패하여야 합니다. 를 테스트합니다.
+  describe('fail use point', () => {
+    it('should fail use point', async () => {
+      const amount = 10000000;
+      const point = await service.use(userId, amount);
+      expect(point).toBeNull();
     });
   });
 });
