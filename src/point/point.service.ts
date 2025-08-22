@@ -29,6 +29,10 @@ export class PointService {
   async use(userId: number, amount: number): Promise<UserPoint> {
     const user = await this.userDb.selectById(userId);
     const newPoint = user.point - amount;
+    // 잔고가 부족할 경우, 포인트 사용은 실패하여야 합니다.
+    if (newPoint < 0) {
+      return null;
+    }
     await this.userDb.insertOrUpdate(userId, newPoint);
     return { id: userId, point: newPoint, updateMillis: Date.now() };
   }
